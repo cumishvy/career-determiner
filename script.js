@@ -1,4 +1,4 @@
-document.getElementById('submitQuiz').addEventListener('click', function() {
+document.getElementById('submitQuiz').addEventListener('click', function () {
     // Get user answers
     const q1 = document.querySelector('input[name="q1"]:checked');
     const q2 = document.querySelector('input[name="q2"]:checked');
@@ -16,33 +16,80 @@ document.getElementById('submitQuiz').addEventListener('click', function() {
     // Determine career based on answers
     let career = '';
     let description = '';
+    const facts = {
+        'Data Scientist': 'Data scientists uncover insights from massive amounts of data to help solve complex problems.',
+        'Artist': 'Artists bring imagination to life through visual and performing arts.',
+        'Psychologist': 'Psychologists understand the human mind to help others improve their mental well-being.',
+        'Software Developer': 'Software developers build the technology that powers our daily lives.',
+        'Environmental Scientist': 'Environmental scientists work to protect the planet and study how humans impact ecosystems.',
+        'Writer': 'Writers create engaging stories, articles, and books to captivate readers.',
+        'Entrepreneur': 'Entrepreneurs innovate and lead businesses to make big ideas a reality!',
+    };
+
+    const recommendations = {
+        'Data Scientist': ['Machine Learning Engineer', 'Statistician'],
+        'Artist': ['Graphic Designer', 'Animator'],
+        'Psychologist': ['Therapist', 'Social Worker'],
+        'Software Developer': ['Game Developer', 'Web Developer'],
+        'Environmental Scientist': ['Conservationist', 'Wildlife Biologist'],
+        'Writer': ['Journalist', 'Screenwriter'],
+        'Entrepreneur': ['Business Consultant', 'Startup Founder'],
+    };
 
     if (q1.value === 'yes' && q4.value === 'science' && q5.value === 'yes') {
-        career = 'Scientist';
-        description = 'You are curious, love to experiment, and enjoy solving the mysteries of the universe!';
+        career = 'Data Scientist';
     } else if (q1.value === 'no' && q4.value === 'art' && q3.value === 'yes') {
         career = 'Artist';
-        description = 'You have a creative mind and a talent for expressing yourself through visual or performing arts.';
     } else if (q2.value === 'team' && q5.value === 'yes' && q6.value === 'indoor') {
         career = 'Psychologist';
-        description = 'You have a deep empathy for others and love helping people solve their problems.';
     } else if (q3.value === 'yes' && q1.value === 'yes' && q6.value === 'indoor') {
         career = 'Software Developer';
-        description = 'You enjoy solving puzzles and creating amazing things with technology.';
     } else if (q6.value === 'outdoor' && q4.value === 'science') {
         career = 'Environmental Scientist';
-        description = 'You are passionate about protecting the planet and love spending time outdoors.';
     } else if (q4.value === 'art' && q5.value === 'no' && q6.value === 'indoor') {
         career = 'Writer';
-        description = 'You have a way with words and enjoy crafting stories, articles, or books.';
     } else {
         career = 'Entrepreneur';
-        description = 'You are a natural leader with big ideas and the determination to make them happen!';
     }
 
+    description = facts[career];
+
+    // Save to leaderboard
+    let careerCount = JSON.parse(localStorage.getItem('careerCount')) || {};
+    careerCount[career] = (careerCount[career] || 0) + 1;
+    localStorage.setItem('careerCount', JSON.stringify(careerCount));
+
     // Display result
+    const similarCareers = recommendations[career] || [];
+    document.getElementById('result').style.display = 'block';
     document.getElementById('result').innerHTML = `
         <strong>Your Future Career:</strong> ${career}<br>
-        <em>${description}</em>
+        <em>${description}</em><br><br>
+        <strong>Similar Careers:</strong> ${similarCareers.join(', ')}
     `;
+
+    // Display leaderboard
+    let leaderboardHTML = '<strong>Most Popular Careers:</strong><br>';
+    for (let [key, value] of Object.entries(careerCount)) {
+        leaderboardHTML += `${key}: ${value}<br>`;
+    }
+    document.getElementById('leaderboard').innerHTML = leaderboardHTML;
+
+    // Enable Share Button
+    const shareButton = document.getElementById('shareResult');
+    shareButton.style.display = 'block';
+    shareButton.addEventListener('click', () => {
+        const shareText = `I just found out my future career is: ${career}! What’s yours? Try it here: [Your App Link]`;
+        if (navigator.share) {
+            navigator
+                .share({
+                    title: 'Future Career Predictor',
+                    text: shareText,
+                    url: '[Your App Link]', // Replace with your actual app URL
+                })
+                .catch(err => alert('Sharing not supported on this device.'));
+        } else {
+            alert('Sharing is not supported on this browser!');
+        }
+    });
 });
